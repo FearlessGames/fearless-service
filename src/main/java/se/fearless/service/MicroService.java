@@ -3,21 +3,20 @@ package se.fearless.service;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.server.HttpServer;
-import io.reactivex.netty.protocol.http.server.RequestHandler;
 
 public class MicroService {
 	private final int port;
-	private final RequestHandler<ByteBuf, ByteBuf> requestHandler;
+	private final Router router;
 	private HttpServer<ByteBuf, ByteBuf> httpServer;
 
-	public MicroService(int port, RequestHandler<ByteBuf, ByteBuf> requestHandler) {
+	public MicroService(int port, Router router) {
 		this.port = port;
-		this.requestHandler = requestHandler;
+		this.router = router;
 	}
 
 	public void start() {
-		httpServer = RxNetty.createHttpServer(port, requestHandler);
-		httpServer.start();
+		httpServer = RxNetty.createHttpServer(port, router::route);
+		httpServer.startAndWait();
 	}
 
 	public void stop() {
