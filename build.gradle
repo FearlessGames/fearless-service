@@ -5,13 +5,14 @@ group 'fearless'
 version '0.1-SNAPSHOT'
 
 repositories {
-    jcenter()
+	jcenter()
 }
 
 dependencies {
-    compile 'io.reactivex:rxnetty:0.4.6'
-    compile 'org.slf4j:slf4j-api:1.7.7'
+	compile 'io.reactivex:rxnetty:0.4.6'
+	compile 'org.slf4j:slf4j-api:1.7.7'
 	compile 'com.google.guava:guava:18.0'
-    runtime 'ch.qos.logback:logback-classic:1.1.2'
-    testCompile 'junit:junit:4.12'
+	runtime 'ch.qos.logback:logback-classic:1.1.2'
+	testCompile 'junit:junit:4.12'
+	testCompile 'se.mockachino:mockachino:0.6.1'
 }
