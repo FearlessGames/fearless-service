@@ -2,6 +2,8 @@ package se.fearless.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.server.HttpServerRequest;
@@ -10,11 +12,16 @@ import io.reactivex.netty.protocol.http.server.RequestHandler;
 import rx.Observable;
 
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class Router {
 	private final Multimap<HttpMethod, RoutePath> routes = ArrayListMultimap.create();
 
 	public void addRoute(HttpMethod method, String path, RequestHandler<ByteBuf, ByteBuf> handler) {
+		addRoute(method, Pattern.compile(Pattern.quote(path)), handler);
+	}
+
+	public void addRoute(HttpMethod method, Pattern path, RequestHandler<ByteBuf, ByteBuf> handler) {
 		routes.put(method, new RoutePath(path, handler));
 	}
 
@@ -30,16 +37,16 @@ public class Router {
 
 
 	private static class RoutePath {
-		private final String path;
+		private final Pattern path;
 		private final RequestHandler<ByteBuf, ByteBuf> handler;
 
-		public RoutePath(String path, RequestHandler<ByteBuf, ByteBuf> handler) {
+		public RoutePath(Pattern path, RequestHandler<ByteBuf, ByteBuf> handler) {
 			this.path = path;
 			this.handler = handler;
 		}
 
 		boolean handles(HttpServerRequest<ByteBuf> request) {
-			return path.equals(request.getPath());
+			return path.matcher(request.getPath()).matches();
 		}
 	}
 }
