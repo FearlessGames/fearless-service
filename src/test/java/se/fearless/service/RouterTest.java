@@ -1,6 +1,5 @@
 package se.fearless.service;
 
-import com.googlecode.gentyref.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.netty.protocol.http.server.HttpServerRequest;
@@ -8,21 +7,16 @@ import io.reactivex.netty.protocol.http.server.HttpServerResponse;
 import io.reactivex.netty.protocol.http.server.RequestHandler;
 import org.junit.Before;
 import org.junit.Test;
+import se.fearless.rxtestutils.HttpRequestMocks;
 
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.*;
 import static se.mockachino.Mockachino.*;
 
 public class RouterTest {
 
 	private Router router;
-	private final static TypeToken<RequestHandler<ByteBuf, ByteBuf>> REQUEST_HANDLER_TYPE_TOKEN = new TypeToken<RequestHandler<ByteBuf, ByteBuf>>() {
-	};
-	private final static TypeToken<HttpServerRequest<ByteBuf>> REQUEST_TYPE_TOKEN = new TypeToken<HttpServerRequest<ByteBuf>>() {
-	};
-	private final static TypeToken<HttpServerResponse<ByteBuf>> RESPONSE_TYPE_TOKEN = new TypeToken<HttpServerResponse<ByteBuf>>() {
-	};
+
 	private RequestHandler<ByteBuf, ByteBuf> handler;
 	private HttpServerRequest<ByteBuf> request;
 	private HttpServerResponse<ByteBuf> response;
@@ -31,9 +25,9 @@ public class RouterTest {
 	@Before
 	public void setUp() throws Exception {
 		router = new Router();
-		handler = mock(REQUEST_HANDLER_TYPE_TOKEN);
-		request = mock(REQUEST_TYPE_TOKEN);
-		response = mock(RESPONSE_TYPE_TOKEN);
+		handler = HttpRequestMocks.requestHandler();
+		request = HttpRequestMocks.request();
+		response = HttpRequestMocks.response();
 	}
 
 	@Test
