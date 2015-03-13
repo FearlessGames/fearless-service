@@ -2,6 +2,8 @@ package se.fearless.service;
 
 import com.netflix.eureka2.client.Eureka;
 import com.netflix.eureka2.client.EurekaClient;
+import com.netflix.eureka2.client.resolver.ServerResolver;
+import com.netflix.eureka2.client.resolver.ServerResolvers;
 import com.netflix.eureka2.registry.InstanceInfo;
 import com.netflix.eureka2.registry.ServicePort;
 import com.netflix.eureka2.registry.datacenter.BasicDataCenterInfo;
@@ -11,6 +13,8 @@ import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import rx.functions.Action0;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
 
 public class MicroService {
@@ -31,6 +35,7 @@ public class MicroService {
 		this.eurekaServerInfo = eurekaServerInfo;
 		this.hostnameProvider = hostnameProvider;
 	}
+
 
 	public void start() {
 		httpServer = RxNetty.createHttpServer(port, router::route);
@@ -71,5 +76,54 @@ public class MicroService {
 
 	public ServiceLocator getServiceLocator(String serviceName) {
 		return new EurekaServiceLocator(serviceName, client);
+	}
+
+
+	public static class Builder {
+		private int port = 0;
+		private EurekaServerInfo eurekaServerInfo = new EurekaServerInfo(ServerResolvers.from(new ServerResolver.Server("localhost", 2222)),
+				ServerResolvers.from(new ServerResolver.Server("localhost", 2223)));
+		private final Router router;
+		private final String systemName;
+		private final String serviceName;
+		private HostnameProvider hostnameProvider = new HostnameProvider();
+
+
+		public Builder(Router router, String systemName, String serviceName) {
+			this.router = router;
+			this.systemName = systemName;
+			this.serviceName = serviceName;
+		}
+
+		public Builder withPort(int port) {
+			this.port = port;
+			return this;
+		}
+
+		public Builder withEurekaServerInfo(EurekaServerInfo eurekaServerInfo) {
+			this.eurekaServerInfo = eurekaServerInfo;
+			return this;
+		}
+
+		public Builder withHostnameProvider(HostnameProvider hostnameProvider) {
+			this.hostnameProvider = hostnameProvider;
+			return this;
+		}
+
+		public MicroService build() {
+			if (port == 0) {
+				port = findFreePort();
+			}
+			return new MicroService(port, router, systemName, serviceName, eurekaServerInfo, hostnameProvider);
+		}
+
+		private int findFreePort() {
+			try (ServerSocket socket = new ServerSocket(0)) {
+				return socket.getLocalPort();
+			} catch (IOException ignored) {
+				return 0;
+			}
+		}
+
 	}
 }
