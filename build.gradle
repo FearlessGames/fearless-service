@@ -9,6 +9,13 @@ version '0.2-SNAPSHOT'
 
 repositories {
 	mavenLocal()
+	maven {
+		url 'http://flexo.fearlessgames.se/artifactory/plugins-release'
+		credentials {
+			username = "reader"
+			password = "f3ArlessGamesR0X!"
+		}
+	}
 	jcenter()
 }
 
@@ -20,5 +27,5 @@ dependencies {
 	runtime 'ch.qos.logback:logback-classic:1.1.2'
 	testCompile 'se.fearless:rxtestutils:0.1'
 	testCompile 'junit:junit:4.12'
-	testCompile 'se.mockachino:mockachino:0.6.1'
+	testCompile 'se.mockachino:mockachino:0.6.2'
 }
