@@ -42,18 +42,9 @@ public class MicroService {
 		client = Eureka.newClientBuilder(eurekaServerInfo.getEurekaDiscovery(), eurekaServerInfo.getEurekaRegistry()).
 				withCodec(EurekaTransports.Codec.Json).build();
 
-		BasicDataCenterInfo location = BasicDataCenterInfo.fromSystemData();
-		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Arrays.asList(location.getDefaultAddress()));
 
-		client.register(new InstanceInfo.Builder()
-				.withId(hostnameProvider.get() + ":" + port)
-				.withApp(systemName)
-				.withStatus(InstanceInfo.Status.UP)
-				.withVipAddress(serviceName)
 
-				.withPorts(new ServicePort(port, false))
-				.withDataCenterInfo(basicDataCenterInfo)
-				.build()).doOnCompleted(new Action0() {
+		client.register(buildInstanceInfo(InstanceInfo.Status.UP)).doOnCompleted(new Action0() {
 			@Override
 			public void call() {
 				System.out.println("Registered in eureka");
@@ -62,12 +53,27 @@ public class MicroService {
 		httpServer.start();
 	}
 
+	private InstanceInfo buildInstanceInfo(InstanceInfo.Status status) {
+		BasicDataCenterInfo location = BasicDataCenterInfo.fromSystemData();
+		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Arrays.asList(location.getDefaultAddress()));
+		return new InstanceInfo.Builder()
+				.withId(hostnameProvider.get() + ":" + port)
+				.withApp(systemName)
+				.withStatus(status)
+				.withVipAddress(serviceName)
+
+				.withPorts(new ServicePort(port, false))
+				.withDataCenterInfo(basicDataCenterInfo)
+				.build();
+	}
+
 	public void waitTillShutdown() throws InterruptedException {
 		httpServer.waitTillShutdown();
 	}
 
 	public void stop() {
 		try {
+			client.update(buildInstanceInfo(InstanceInfo.Status.DOWN)).toBlocking().lastOrDefault(null);
 			httpServer.shutdown();
 		} catch (InterruptedException e) {
 			e.printStackTrace();

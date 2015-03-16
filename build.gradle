@@ -8,6 +8,7 @@ group 'se.fearless'
 version '0.2-SNAPSHOT'
 
 repositories {
+	mavenLocal()
 	jcenter()
 }
 
