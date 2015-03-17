@@ -10,6 +10,7 @@ version '0.2-SNAPSHOT'
 
 repositories {
 	mavenLocal()
+	jcenter()
 	maven {
 		url 'http://flexo.fearlessgames.se/artifactory/plugins-release'
 		credentials {
@@ -17,7 +18,6 @@ repositories {
 			password = "f3ArlessGamesR0X!"
 		}
 	}
-	jcenter()
 }
 
 dependencies {
