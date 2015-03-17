@@ -31,11 +31,6 @@ dependencies {
 	testCompile 'se.mockachino:mockachino:0.6.2'
 }
 
-test {
-	reports.html.enabled = true
-	reports.xml.enabled = true
-}
-
 jacocoTestReport {
 	reports {
 		html.enabled = true
