@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class HostnameProvider {
 	public String get() {
-		String hostAddress = "unknown";
+		String hostAddress;
 		try {
 			hostAddress = InetAddress.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {

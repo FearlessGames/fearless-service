@@ -16,6 +16,7 @@ import rx.functions.Action0;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class MicroService {
 	private final int port;
@@ -44,18 +45,14 @@ public class MicroService {
 
 
 
-		client.register(buildInstanceInfo(InstanceInfo.Status.UP)).doOnCompleted(new Action0() {
-			@Override
-			public void call() {
-				System.out.println("Registered in eureka");
-			}
-		}).toBlocking().lastOrDefault(null);
+		client.register(buildInstanceInfo(InstanceInfo.Status.UP)).doOnCompleted(
+				() -> System.out.println("Registered in eureka")).toBlocking().lastOrDefault(null);
 		httpServer.start();
 	}
 
 	private InstanceInfo buildInstanceInfo(InstanceInfo.Status status) {
 		BasicDataCenterInfo location = BasicDataCenterInfo.fromSystemData();
-		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Arrays.asList(location.getDefaultAddress()));
+		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Collections.singletonList(location.getDefaultAddress()));
 		return new InstanceInfo.Builder()
 				.withId(hostnameProvider.get() + ":" + port)
 				.withApp(systemName)
