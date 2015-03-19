@@ -4,6 +4,7 @@ import com.netflix.eureka2.client.Eureka;
 import com.netflix.eureka2.client.EurekaClient;
 import com.netflix.eureka2.client.resolver.ServerResolver;
 import com.netflix.eureka2.client.resolver.ServerResolvers;
+import com.netflix.eureka2.interests.ChangeNotification;
 import com.netflix.eureka2.registry.InstanceInfo;
 import com.netflix.eureka2.registry.ServicePort;
 import com.netflix.eureka2.registry.datacenter.BasicDataCenterInfo;
@@ -11,11 +12,10 @@ import com.netflix.eureka2.transport.EurekaTransports;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.server.HttpServer;
-import rx.functions.Action0;
+import rx.Observable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class MicroService {
@@ -27,6 +27,7 @@ public class MicroService {
 	private final HostnameProvider hostnameProvider;
 	private HttpServer<ByteBuf, ByteBuf> httpServer;
 	private EurekaClient client;
+	private ServiceInfoTransformer serviceInfoTransformer;
 
 	public MicroService(int port, Router router, String systemName, String serviceName, EurekaServerInfo eurekaServerInfo, HostnameProvider hostnameProvider) {
 		this.port = port;
@@ -78,7 +79,10 @@ public class MicroService {
 	}
 
 	public ServiceLocator getServiceLocator(String serviceName) {
-		return new EurekaServiceLocator(serviceName, client);
+		Observable<ChangeNotification<InstanceInfo>> changeNotificationObservable = client.forVips(serviceName);
+		Observable<EurekaServiceLocator.ServiceInfo> infoObservable = changeNotificationObservable.flatMap(ServiceInfoTransformer::transform);
+
+		return new EurekaServiceLocator(infoObservable);
 	}
 
 
@@ -129,4 +133,5 @@ public class MicroService {
 		}
 
 	}
+
 }
