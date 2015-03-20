@@ -15,6 +15,7 @@ public class EurekaServiceLocator implements ServiceLocator {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private final List<ServiceInfo> endpoints = new ArrayList<>();
+	private int currentIndex = 0;
 
 	public EurekaServiceLocator(Observable<ServiceInfo> serviceInfoObservable) {
 		serviceInfoObservable.forEach(notification -> {
@@ -32,8 +33,9 @@ public class EurekaServiceLocator implements ServiceLocator {
 		if (endpoints.isEmpty()) {
 			return null;
 		}
-		ServiceInfo serviceInfo = endpoints.get(0);
-
+		ServiceInfo serviceInfo = endpoints.get(currentIndex);
+		currentIndex++;
+		currentIndex = currentIndex == endpoints.size() ? 0: currentIndex;
 		return serviceInfo.getAsUrl();
 	}
 
