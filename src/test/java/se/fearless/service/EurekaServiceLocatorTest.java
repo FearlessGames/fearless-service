@@ -14,11 +14,6 @@ import static se.mockachino.Mockachino.mock;
 public class EurekaServiceLocatorTest {
 
 	@Test
-	public void getWithNoServersReturnNull() throws Exception {
-
-	}
-
-	@Test
 	public void getWithOneServerUsesThatData() throws Exception {
 		String serverName = "serverName";
 		Integer port = 9876;
