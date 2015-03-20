@@ -5,15 +5,24 @@ import com.netflix.eureka2.registry.InstanceInfo;
 import org.junit.Test;
 import rx.Observable;
 
+import static org.junit.Assert.assertEquals;
+
 public class ServiceInfoTransformerTest {
 
 	@Test
 	public void transformSingleEntry() throws Exception {
-		ServiceInfoTransformer serviceInfoTransformer = new ServiceInfoTransformer();
-		InstanceInfo instanceInfo = new InstanceInfo.Builder().build();
+		String ip = "192.168.0.12";
+		int port = 4711;
+		InstanceInfoFactory instanceInfoFactory = new InstanceInfoFactory("app", "myService");
+		InstanceInfo instanceInfo = instanceInfoFactory.create(ip, port);
 		ChangeNotification<InstanceInfo> changeNotification = new ChangeNotification<>(ChangeNotification.Kind.Add, instanceInfo);
 		Observable<ChangeNotification<InstanceInfo>> changeNotificationObservable = Observable.just(changeNotification);
-		//Observable<EurekaServiceLocator.ServiceInfo> infoObservable = serviceInfoTransformer.transform(changeNotificationObservable);
 
+		Observable<EurekaServiceLocator.ServiceInfo> infoObservable = ServiceInfoTransformer.transform(changeNotification);
+
+		infoObservable.forEach(serviceInfo -> {
+			System.out.println("Testing service info");
+			assertEquals("http://" + ip + ":" + port, serviceInfo.getAsUrl());
+		});
 	}
 }

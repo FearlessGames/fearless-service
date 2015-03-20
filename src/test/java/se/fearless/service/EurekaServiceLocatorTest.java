@@ -1,26 +1,15 @@
 package se.fearless.service;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-import com.netflix.eureka2.client.EurekaClient;
-import com.netflix.eureka2.interests.ChangeNotification;
-import com.netflix.eureka2.registry.InstanceInfo;
-import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
-import rx.Subscriber;
-import rx.observers.TestSubscriber;
-import se.mockachino.Mockachino;
-import se.mockachino.Settings;
 
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static se.mockachino.Mockachino.mock;
-import static se.mockachino.Mockachino.when;
 
 public class EurekaServiceLocatorTest {
 
@@ -76,6 +65,7 @@ public class EurekaServiceLocatorTest {
 
 	@Test
 	public void getTenTimesWithTwoServersGetFiveTimesTwoDifferentAddresses() throws Exception {
+		// given
 		String serverName1 = "foo";
 		String serverName2 = "bar";
 		Integer port1 = 9876;
@@ -86,14 +76,18 @@ public class EurekaServiceLocatorTest {
 				new EurekaServiceLocator.ServiceInfo(serverName2, port2, true));
 
 		EurekaServiceLocator locator = new EurekaServiceLocator(infoObservable);
-
 		Multiset<String> locations = HashMultiset.create();
 
+		// when
 		for (int i = 0; i < 10; i++) {
 			String location = locator.get();
 			locations.add(location);
 		}
 
+		thenTheTwoServersAreReturnedTheSameNumberOfTimes(locations);
+	}
+
+	private void thenTheTwoServersAreReturnedTheSameNumberOfTimes(Multiset<String> locations) {
 		assertEquals(2, locations.elementSet().size());
 
 		Set<Multiset.Entry<String>> entries = locations.entrySet();
