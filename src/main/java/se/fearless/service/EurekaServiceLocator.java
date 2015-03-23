@@ -1,7 +1,5 @@
 package se.fearless.service;
 
-import com.netflix.eureka2.interests.ChangeNotification;
-import com.netflix.eureka2.registry.InstanceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -41,6 +39,7 @@ public class EurekaServiceLocator implements ServiceLocator {
 
 	public static class ServiceInfo {
 		private final String serverAdress;
+
 		private final int port;
 		private final boolean up;
 
