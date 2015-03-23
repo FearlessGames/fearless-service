@@ -31,19 +31,15 @@ public class EurekaServiceLocatorTest {
 
 	@Test
 	public void getWithOneServerUsesThatData() throws Exception {
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, true));
+		postInfoToSubject(subject, serverName1, port1, true);
 		String serviceLocation = serviceLocator.get();
 		String expectedLocation = buildUrlFromServerNameAndPort(serverName1, port1);
 		assertEquals(expectedLocation, serviceLocation);
 	}
 
-	private static String buildUrlFromServerNameAndPort(String serverName1, Integer port1) {
-		return "http://" + serverName1 + ":" + port1;
-	}
-
 	@Test
 	public void getTwiceWithOneServerGetTheSameAddress() throws Exception {
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, true));
+		postInfoToSubject(subject, serverName1, port1, true);
 
 		String serviceLocation1 = serviceLocator.get();
 		String serviceLocation2 = serviceLocator.get();
@@ -53,8 +49,8 @@ public class EurekaServiceLocatorTest {
 
 	@Test
 	public void getTwiceWithTwoServersGetDifferentAddresses() throws Exception {
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, true));
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName2, port2, true));
+		postInfoToSubject(subject, serverName1, port1, true);
+		postInfoToSubject(subject, serverName2, port2, true);
 
 		String serviceLocation1 = serviceLocator.get();
 		String serviceLocation2 = serviceLocator.get();
@@ -64,9 +60,9 @@ public class EurekaServiceLocatorTest {
 
 	@Test
 	public void getWhenOneServiceWasAddedAndThenRemoved() throws Exception {
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, true));
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName2, port2, true));
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, false));
+		postInfoToSubject(subject, serverName1, port1, true);
+		postInfoToSubject(subject, serverName2, port2, true);
+		postInfoToSubject(subject, serverName1, port1, false);
 
 		String location = serviceLocator.get();
 		String expectedLocation = buildUrlFromServerNameAndPort(serverName2, port2);
@@ -75,8 +71,8 @@ public class EurekaServiceLocatorTest {
 
 	@Test
 	public void getTenTimesWithTwoServersGetFiveTimesTwoDifferentAddresses() throws Exception {
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, true));
-		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName2, port2, true));
+		postInfoToSubject(subject, serverName1, port1, true);
+		postInfoToSubject(subject, serverName2, port2, true);
 
 		Multiset<String> locations = HashMultiset.create();
 
@@ -89,12 +85,20 @@ public class EurekaServiceLocatorTest {
 		thenTheTwoServersAreReturnedTheSameNumberOfTimes(locations);
 	}
 
-	private void thenTheTwoServersAreReturnedTheSameNumberOfTimes(Multiset<String> locations) {
+	private static void thenTheTwoServersAreReturnedTheSameNumberOfTimes(Multiset<String> locations) {
 		assertEquals(2, locations.elementSet().size());
 
 		Set<Multiset.Entry<String>> entries = locations.entrySet();
 		for (Multiset.Entry<String> entry : entries) {
 			assertEquals(5, entry.getCount());
 		}
+	}
+
+	private static String buildUrlFromServerNameAndPort(String serverName, Integer port) {
+		return "http://" + serverName + ":" + port;
+	}
+
+	private static void postInfoToSubject(PublishSubject<EurekaServiceLocator.ServiceInfo> subject, String serverName1, Integer port1, boolean up) {
+		subject.onNext(new EurekaServiceLocator.ServiceInfo(serverName1, port1, up));
 	}
 }
