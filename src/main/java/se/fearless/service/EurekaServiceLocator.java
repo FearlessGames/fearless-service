@@ -21,9 +21,14 @@ public class EurekaServiceLocator implements ServiceLocator {
 			if (notification.up) {
 				endpoints.add(notification);
 			} else {
-				endpoints.remove(notification);
+				removeEntry(notification);
 			}
 		});
+	}
+
+	private void removeEntry(ServiceInfo notification) {
+		endpoints.remove(notification);
+		capCurrentIndex();
 	}
 
 	@Override
@@ -33,8 +38,12 @@ public class EurekaServiceLocator implements ServiceLocator {
 		}
 		ServiceInfo serviceInfo = endpoints.get(currentIndex);
 		currentIndex++;
-		currentIndex = currentIndex == endpoints.size() ? 0: currentIndex;
+		capCurrentIndex();
 		return serviceInfo.getAsUrl();
+	}
+
+	private void capCurrentIndex() {
+		currentIndex = currentIndex == endpoints.size() ? 0: currentIndex;
 	}
 
 	public static class ServiceInfo {

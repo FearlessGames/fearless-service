@@ -82,15 +82,37 @@ public class EurekaServiceLocatorTest {
 			locations.add(location);
 		}
 
-		thenTheTwoServersAreReturnedTheSameNumberOfTimes(locations);
+		thenTheTwoServersAreReturnedTheSameNumberOfTimes(locations, 2, 5);
 	}
 
-	private static void thenTheTwoServersAreReturnedTheSameNumberOfTimes(Multiset<String> locations) {
-		assertEquals(2, locations.elementSet().size());
+	@Test
+	public void getAFewTimesAfterServicesHaveGoneUpAndDown() throws Exception {
+		String serverName3 = "baz";
+		Integer port3 = 5763;
+		postInfoToSubject(subject, serverName1, port1, true);
+		postInfoToSubject(subject, serverName2, port2, true);
+		postInfoToSubject(subject, serverName3, port3, true);
+
+		serviceLocator.get();
+		serviceLocator.get();
+
+		postInfoToSubject(subject, serverName2, port2, false);
+
+		Multiset<String> locations = HashMultiset.create();
+		for (int i = 0; i < 10; i++) {
+			String location = serviceLocator.get();
+			locations.add(location);
+		}
+
+		thenTheTwoServersAreReturnedTheSameNumberOfTimes(locations, 2, 5);
+	}
+
+	private static void thenTheTwoServersAreReturnedTheSameNumberOfTimes(Multiset<String> locations, int expectedNumberOfServers, int expectedEntriesForEach) {
+		assertEquals(expectedNumberOfServers, locations.elementSet().size());
 
 		Set<Multiset.Entry<String>> entries = locations.entrySet();
 		for (Multiset.Entry<String> entry : entries) {
-			assertEquals(5, entry.getCount());
+			assertEquals(expectedEntriesForEach, entry.getCount());
 		}
 	}
 
