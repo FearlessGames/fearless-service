@@ -9,7 +9,10 @@ public class ServiceInfoTransformer {
 	public static Observable<EurekaServiceLocator.ServiceInfo> transform(ChangeNotification<InstanceInfo> notification) {
 		InstanceInfo data = notification.getData();
 		NetworkAddress defaultAddress = data.getDataCenterInfo().getDefaultAddress();
-		return Observable.from(data.getPorts()).map(servicePort -> new EurekaServiceLocator.ServiceInfo(defaultAddress.getIpAddress(), servicePort.getPort(), true));
+		return Observable.from(data.getPorts()).map(servicePort -> {
+			boolean isUp = notification.getKind() == ChangeNotification.Kind.Add;
+			return new EurekaServiceLocator.ServiceInfo(defaultAddress.getIpAddress(), servicePort.getPort(), isUp);
+		});
 	}
 
 }

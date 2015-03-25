@@ -80,5 +80,9 @@ public class EurekaServiceLocator implements ServiceLocator {
 		public int hashCode() {
 			return Objects.hash(serverAdress, port);
 		}
+
+		public boolean isUp() {
+			return up;
+		}
 	}
 }
