@@ -1,14 +1,18 @@
 package se.fearless.service;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.netflix.eureka2.client.Eureka;
 import com.netflix.eureka2.client.EurekaClient;
 import com.netflix.eureka2.client.resolver.ServerResolver;
 import com.netflix.eureka2.client.resolver.ServerResolvers;
 import com.netflix.eureka2.interests.ChangeNotification;
 import com.netflix.eureka2.registry.InstanceInfo;
+import com.netflix.eureka2.registry.NetworkAddress;
 import com.netflix.eureka2.registry.ServicePort;
 import com.netflix.eureka2.registry.datacenter.BasicDataCenterInfo;
 import com.netflix.eureka2.transport.EurekaTransports;
+import com.netflix.eureka2.utils.SystemUtil;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.server.HttpServer;
@@ -17,6 +21,13 @@ import rx.Observable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static com.netflix.eureka2.registry.NetworkAddress.NetworkAddressBuilder.aNetworkAddress;
 
 public class MicroService {
 	private final int port;
@@ -53,7 +64,7 @@ public class MicroService {
 
 	private InstanceInfo buildInstanceInfo(InstanceInfo.Status status) {
 		BasicDataCenterInfo location = BasicDataCenterInfo.fromSystemData();
-		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Collections.singletonList(location.getDefaultAddress()));
+		BasicDataCenterInfo basicDataCenterInfo = new BasicDataCenterInfo(hostnameProvider.get(), Collections.singletonList(getLocalIpv4Address(location)));
 		return new InstanceInfo.Builder()
 				.withId(hostnameProvider.get() + ":" + port)
 				.withApp(systemName)
@@ -63,6 +74,19 @@ public class MicroService {
 				.withPorts(new ServicePort(port, false))
 				.withDataCenterInfo(basicDataCenterInfo)
 				.build();
+	}
+
+	private NetworkAddress getLocalIpv4Address(BasicDataCenterInfo location) {
+		Stream<NetworkAddress> ip4Stream = location.getAddresses().stream().filter(networkAddress -> networkAddress.getProtocolType() == NetworkAddress.ProtocolType.IPv4);
+		Optional<NetworkAddress> firstPublic = ip4Stream.filter(networkAddress -> networkAddress.getLabel().equals(NetworkAddress.PUBLIC_ADDRESS)).findFirst();
+		if (firstPublic.isPresent()) {
+			return firstPublic.get();
+		}
+		Optional<NetworkAddress> firstIp4 = ip4Stream.findFirst();
+		if (firstIp4.isPresent()) {
+			return firstIp4.get();
+		}
+		return location.getDefaultAddress();
 	}
 
 	public void waitTillShutdown() throws InterruptedException {
