@@ -38,7 +38,6 @@ public class MicroService {
 	private final HostnameProvider hostnameProvider;
 	private HttpServer<ByteBuf, ByteBuf> httpServer;
 	private EurekaClient client;
-	private ServiceInfoTransformer serviceInfoTransformer;
 
 	public MicroService(int port, Router router, String systemName, String serviceName, EurekaServerInfo eurekaServerInfo, HostnameProvider hostnameProvider) {
 		this.port = port;
