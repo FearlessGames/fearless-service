@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-	compile 'io.reactivex:rxnetty:0.4.6'
+	compile 'io.reactivex:rxnetty:0.4.9'
 	compile 'org.slf4j:slf4j-api:1.7.7'
 	compile 'com.google.guava:guava:18.0'
 	compile 'com.netflix.eureka2:eureka-client:2.0.0-DP4'
