@@ -1,7 +1,5 @@
 package se.fearless.service;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.netflix.eureka2.client.Eureka;
 import com.netflix.eureka2.client.EurekaClient;
 import com.netflix.eureka2.client.resolver.ServerResolver;
@@ -12,7 +10,6 @@ import com.netflix.eureka2.registry.NetworkAddress;
 import com.netflix.eureka2.registry.ServicePort;
 import com.netflix.eureka2.registry.datacenter.BasicDataCenterInfo;
 import com.netflix.eureka2.transport.EurekaTransports;
-import com.netflix.eureka2.utils.SystemUtil;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
 import io.reactivex.netty.protocol.http.server.HttpServer;
@@ -21,13 +18,9 @@ import rx.Observable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static com.netflix.eureka2.registry.NetworkAddress.NetworkAddressBuilder.aNetworkAddress;
+import java.util.stream.Collectors;
 
 public class MicroService {
 	private final int port;
@@ -76,12 +69,12 @@ public class MicroService {
 	}
 
 	private NetworkAddress getLocalIpv4Address(BasicDataCenterInfo location) {
-		Stream<NetworkAddress> ip4Stream = location.getAddresses().stream().filter(networkAddress -> networkAddress.getProtocolType() == NetworkAddress.ProtocolType.IPv4);
-		Optional<NetworkAddress> firstPublic = ip4Stream.filter(networkAddress -> networkAddress.getLabel().equals(NetworkAddress.PUBLIC_ADDRESS)).findFirst();
+		List<NetworkAddress> ipv4Adresses = location.getAddresses().stream().filter(networkAddress -> networkAddress.getProtocolType() == NetworkAddress.ProtocolType.IPv4).collect(Collectors.toList());
+		Optional<NetworkAddress> firstPublic = ipv4Adresses.stream().filter(networkAddress -> networkAddress.getLabel().equals(NetworkAddress.PUBLIC_ADDRESS)).findFirst();
 		if (firstPublic.isPresent()) {
 			return firstPublic.get();
 		}
-		Optional<NetworkAddress> firstIp4 = ip4Stream.findFirst();
+		Optional<NetworkAddress> firstIp4 = ipv4Adresses.stream().findFirst();
 		if (firstIp4.isPresent()) {
 			return firstIp4.get();
 		}
