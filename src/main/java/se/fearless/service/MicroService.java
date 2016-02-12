@@ -12,8 +12,10 @@ import com.netflix.eureka2.registry.datacenter.BasicDataCenterInfo;
 import com.netflix.eureka2.transport.EurekaTransports;
 import io.netty.buffer.ByteBuf;
 import io.reactivex.netty.RxNetty;
+import io.reactivex.netty.protocol.http.client.HttpClientResponse;
 import io.reactivex.netty.protocol.http.server.HttpServer;
 import rx.Observable;
+import rx.functions.Func1;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MicroService {
+public class MicroService implements RemoteServiceCaller {
 	private final int port;
 	private final Router router;
 	private final String systemName;
@@ -92,6 +94,20 @@ public class MicroService {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public <T> Observable<T> callService(String serviceName, String path, Func1<ByteBuf, T> resultMapper) {
+		ServiceLocator serviceLocator = getServiceLocator(serviceName);
+		String serverUrl = serviceLocator.get();
+		String uri = serverUrl + path;
+		Observable<HttpClientResponse<ByteBuf>> httpGet = RxNetty.createHttpGet(uri);
+		return httpGet.flatMap(byteBufHttpClientResponse -> {
+			Observable<ByteBuf> content = byteBufHttpClientResponse.getContent();
+
+			return content.map(resultMapper);
+
+		});
 	}
 
 	public ServiceLocator getServiceLocator(String serviceName) {
